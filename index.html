@@ -1,0 +1,1410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>ExamForge — Online Test Platform</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Exo+2:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    :root{
+      --bg:#07071a;--bg2:#0d0d24;
+      --glass:rgba(255,255,255,0.05);--glass2:rgba(255,255,255,0.08);
+      --border:rgba(255,255,255,0.09);--border2:rgba(255,255,255,0.14);
+      --cyan:#00d4ff;--purple:#7c3aed;--pink:#ec4899;
+      --green:#10b981;--red:#ef4444;--amber:#f59e0b;--sky:#38bdf8;
+      --t1:#eef2ff;--t2:rgba(238,242,255,0.65);--t3:rgba(238,242,255,0.35);--t4:rgba(238,242,255,0.2);
+      --r-sm:8px;--r-md:14px;--r-lg:20px;--r-xl:26px;--r-full:9999px;
+      --ease:cubic-bezier(0.4,0,0.2,1);--spring:cubic-bezier(0.34,1.56,0.64,1);
+      --fd:'Orbitron',sans-serif;--fb:'Exo 2',sans-serif;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html{font-size:16px;scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+    body{font-family:var(--fb);background:var(--bg);color:var(--t1);min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+    button{font-family:var(--fb);cursor:pointer;border:none;background:none}
+    input,select{font-family:var(--fb)}
+    ::-webkit-scrollbar{width:4px;height:4px}
+    ::-webkit-scrollbar-track{background:transparent}
+    ::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:2px}
+    input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
+    ::selection{background:rgba(0,212,255,0.22);color:#fff}
+
+    /* BG */
+    .bg-wrap{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+    .bg-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(0,212,255,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,0.04) 1px,transparent 1px);background-size:46px 46px;animation:gblink 9s ease-in-out infinite}
+    @keyframes gblink{0%,100%{opacity:.45}50%{opacity:.9}}
+    .orb{position:absolute;border-radius:50%;filter:blur(88px);animation:orbf 15s ease-in-out infinite}
+    .o1{width:540px;height:540px;background:var(--cyan);opacity:.09;top:-160px;right:-100px}
+    .o2{width:420px;height:420px;background:var(--purple);opacity:.1;bottom:-120px;left:-80px;animation-delay:5s}
+    .o3{width:300px;height:300px;background:var(--pink);opacity:.06;top:42%;left:50%;transform:translate(-50%,-50%);animation-delay:9s}
+    @keyframes orbf{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(25px,-20px) scale(1.05)}66%{transform:translate(-18px,25px) scale(.95)}}
+
+    /* APP */
+    #app{position:relative;z-index:1;min-height:100vh}
+    .view{display:none;flex-direction:column;min-height:100vh;opacity:0;transform:translateY(16px)}
+    .view.active{display:flex;animation:vIn .42s var(--ease) forwards}
+    .view.exit{animation:vOut .26s var(--ease) forwards}
+    @keyframes vIn{to{opacity:1;transform:translateY(0)}}
+    @keyframes vOut{to{opacity:0;transform:translateY(-14px)}}
+
+    /* CARD */
+    .card{background:var(--glass);border:1px solid var(--border2);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-radius:var(--r-lg);box-shadow:0 8px 32px rgba(0,0,0,.45);transition:all .28s var(--ease)}
+    .ch:hover{background:var(--glass2);border-color:rgba(0,212,255,.2);box-shadow:0 8px 32px rgba(0,0,0,.45),0 0 22px rgba(0,212,255,.07);transform:translateY(-2px)}
+
+    /* BUTTONS */
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:13px 26px;border-radius:var(--r-md);font-weight:700;font-size:.88rem;letter-spacing:.03em;transition:all .22s var(--ease);position:relative;overflow:hidden;-webkit-tap-highlight-color:transparent;touch-action:manipulation;white-space:nowrap;cursor:pointer}
+    .btn::after{content:'';position:absolute;inset:0;background:rgba(255,255,255,.1);opacity:0;transition:opacity .15s}
+    .btn:active::after{opacity:1}
+    .btn:disabled{opacity:.32;cursor:not-allowed;pointer-events:none}
+    .bp{background:linear-gradient(135deg,var(--cyan),#0099cc);color:#000;font-weight:800;box-shadow:0 4px 22px rgba(0,212,255,.4)}
+    .bp:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,212,255,.55)}
+    .bs{background:var(--glass);border:1px solid var(--border2);color:var(--t1);backdrop-filter:blur(12px)}
+    .bs:hover{background:var(--glass2);border-color:rgba(0,212,255,.3);color:var(--cyan)}
+    .bpu{background:linear-gradient(135deg,var(--purple),#4c1d95);color:#fff;box-shadow:0 4px 20px rgba(124,58,237,.3)}
+    .bpu:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(124,58,237,.45)}
+    .bg_{background:linear-gradient(135deg,var(--green),#059669);color:#fff;box-shadow:0 4px 20px rgba(16,185,129,.3)}
+    .bg_:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(16,185,129,.45)}
+    .br{background:linear-gradient(135deg,var(--red),#b91c1c);color:#fff;box-shadow:0 4px 20px rgba(239,68,68,.3)}
+    .br:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(239,68,68,.45)}
+    .bsk{background:linear-gradient(135deg,var(--sky),#0284c7);color:#fff;box-shadow:0 4px 20px rgba(56,189,248,.3)}
+    .bsk:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(56,189,248,.45)}
+    .blg{padding:16px 38px;font-size:.98rem;border-radius:var(--r-lg);min-height:56px}
+    .bsm{padding:8px 14px;font-size:.76rem;border-radius:var(--r-sm)}
+    .bxs{padding:6px 12px;font-size:.7rem;border-radius:var(--r-sm)}
+    .bw{width:100%;justify-content:center}
+    .shine::before{content:'';position:absolute;top:-50%;left:-70%;width:30%;height:200%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.28),transparent);transform:skewX(-18deg);animation:shineA 3.5s ease-in-out infinite}
+    @keyframes shineA{0%{left:-70%;opacity:0}18%{opacity:1}38%{left:120%;opacity:0}100%{left:120%;opacity:0}}
+
+    /* INPUTS */
+    .fg{display:flex;flex-direction:column;gap:6px}
+    .fl{font-size:.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--t3)}
+    .fw{position:relative}
+    .fi{position:absolute;left:15px;top:50%;transform:translateY(-50%);color:var(--t3);font-size:.8rem;transition:color .22s;pointer-events:none}
+    .fw:focus-within .fi{color:var(--cyan)}
+    .ff{background:rgba(255,255,255,.05);border:1.5px solid var(--border);border-radius:var(--r-md);padding:14px 17px;color:var(--t1);font-size:.94rem;transition:all .22s var(--ease);outline:none;width:100%}
+    .hi .ff{padding-left:42px}
+    .ff:focus{border-color:var(--cyan);background:rgba(0,212,255,.05);box-shadow:0 0 0 3px rgba(0,212,255,.12)}
+    .ff::placeholder{color:var(--t3)}
+    select.ff{appearance:none;-webkit-appearance:none;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2300d4ff' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 15px center;padding-right:42px}
+    .fstack{display:flex;flex-direction:column;gap:15px}
+
+    /* BADGE */
+    .badge{display:inline-flex;align-items:center;gap:5px;padding:4px 11px;border-radius:var(--r-full);font-size:.69rem;font-weight:700;letter-spacing:.07em}
+    .bc{background:rgba(0,212,255,.09);border:1px solid rgba(0,212,255,.22);color:var(--cyan)}
+    .bpc{background:rgba(124,58,237,.09);border:1px solid rgba(124,58,237,.22);color:#a78bfa}
+    .bgc{background:rgba(16,185,129,.09);border:1px solid rgba(16,185,129,.22);color:var(--green)}
+    .brc{background:rgba(239,68,68,.09);border:1px solid rgba(239,68,68,.22);color:var(--red)}
+    .bac{background:rgba(245,158,11,.09);border:1px solid rgba(245,158,11,.22);color:var(--amber)}
+
+    /* MISC */
+    .hr{height:1px;background:var(--border);margin:20px 0}
+    .sl{font-family:var(--fd);font-size:.63rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--t3);margin-bottom:11px;display:flex;align-items:center;gap:7px}
+    .sl::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--border),transparent)}
+    .stg{opacity:0;transform:translateY(13px);animation:stgI .38s var(--ease) forwards}
+    @keyframes stgI{to{opacity:1;transform:translateY(0)}}
+    .hid{display:none!important}
+
+    /* ── CLOUD STATUS BAR ── */
+    .cbar{position:fixed;top:0;left:0;right:0;z-index:200;padding:8px 18px;font-size:.75rem;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .35s var(--ease);transform:translateY(-100%)}
+    .cbar.show{transform:translateY(0)}
+    .cbar.syncing{background:linear-gradient(90deg,rgba(56,189,248,.15),rgba(0,212,255,.15));border-bottom:1px solid rgba(0,212,255,.2);color:var(--cyan)}
+    .cbar.ok{background:linear-gradient(90deg,rgba(16,185,129,.15),rgba(0,212,255,.1));border-bottom:1px solid rgba(16,185,129,.2);color:var(--green)}
+    .cbar.err{background:rgba(239,68,68,.12);border-bottom:1px solid rgba(239,68,68,.2);color:#fca5a5}
+    .spin{animation:spinA .8s linear infinite;display:inline-block}
+    @keyframes spinA{to{transform:rotate(360deg)}}
+
+    /* ── VIEW: START ── */
+    #vs{align-items:center;justify-content:center;padding:28px 20px 52px}
+    .admin-chip{position:fixed;top:16px;right:16px;z-index:100;background:var(--glass);border:1px solid var(--border2);backdrop-filter:blur(20px);color:var(--t3);padding:6px 14px;border-radius:var(--r-full);font-size:.7rem;font-weight:700;letter-spacing:.08em;cursor:pointer;transition:all .22s var(--ease);text-transform:uppercase;display:flex;align-items:center;gap:6px}
+    .admin-chip:hover{color:var(--cyan);border-color:rgba(0,212,255,.3);background:rgba(0,212,255,.06)}
+    .hero{text-align:center;margin-bottom:32px;animation:heroI .9s var(--spring) both}
+    @keyframes heroI{from{opacity:0;transform:translateY(-30px) scale(.9)}to{opacity:1;transform:translateY(0) scale(1)}}
+    .logo-wrap{width:88px;height:88px;background:linear-gradient(145deg,var(--cyan),var(--purple));border-radius:24px;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;position:relative;box-shadow:0 0 40px rgba(0,212,255,.32),0 0 80px rgba(124,58,237,.18);animation:lp 3s ease-in-out infinite}
+    .logo-wrap::after{content:'';position:absolute;inset:-4px;border-radius:28px;background:linear-gradient(145deg,var(--cyan),var(--purple));z-index:-1;opacity:.22;filter:blur(12px)}
+    .li{font-family:var(--fd);font-size:1.45rem;font-weight:900;color:#000}
+    @keyframes lp{0%,100%{box-shadow:0 0 40px rgba(0,212,255,.32),0 0 80px rgba(124,58,237,.18)}50%{box-shadow:0 0 60px rgba(0,212,255,.52),0 0 120px rgba(124,58,237,.3)}}
+    .bn{font-family:var(--fd);font-size:clamp(2rem,5.5vw,2.7rem);font-weight:900;background:linear-gradient(135deg,var(--cyan),#fff,var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:.07em;margin-bottom:5px}
+    .bsub{font-size:.76rem;color:var(--t3);letter-spacing:.18em;text-transform:uppercase}
+    .sc{width:100%;max-width:430px;padding:34px 28px;animation:scA .8s .25s var(--spring) both}
+    @keyframes scA{from{opacity:0;transform:translateY(30px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
+    .sch{text-align:center;margin-bottom:24px}
+    .sch h2{font-family:var(--fd);font-size:.9rem;font-weight:600;color:var(--t2);letter-spacing:.04em;margin-bottom:5px}
+    .sch p{font-size:.8rem;color:var(--t3)}
+    .ichips{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+    .dev-strip{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);z-index:90;background:var(--glass);border:1px solid var(--border);backdrop-filter:blur(18px);border-radius:var(--r-full);padding:6px 16px;font-size:.7rem;color:var(--t3);white-space:nowrap;display:flex;align-items:center;gap:7px}
+    .dn{background:linear-gradient(90deg,var(--cyan),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-weight:700}
+    .dd{width:5px;height:5px;border-radius:50%;background:var(--cyan);animation:ddA 2s ease-in-out infinite;flex-shrink:0}
+    @keyframes ddA{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.7)}}
+
+    /* ── VIEW: ADMIN LOGIN ── */
+    #val{align-items:center;justify-content:center;padding:24px 20px}
+    .alc{width:100%;max-width:388px;padding:40px 30px;margin:auto}
+    .alh{text-align:center;margin-bottom:30px}
+    .alh h1{font-family:var(--fd);font-size:1.5rem;font-weight:800;margin:12px 0 6px;letter-spacing:.03em}
+    .alh p{font-size:.83rem;color:var(--t2)}
+    .ebar{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.28);border-radius:var(--r-sm);padding:11px 14px;font-size:.8rem;color:#fca5a5;display:flex;align-items:center;gap:8px;margin-bottom:14px;animation:shake .38s var(--ease)}
+    @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-7px)}40%{transform:translateX(7px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+    .brow{display:flex;align-items:center;justify-content:center;gap:6px;color:var(--t3);font-size:.8rem;cursor:pointer;transition:color .2s;margin-top:20px;padding:8px}
+    .brow:hover{color:var(--cyan)}
+
+    /* ── VIEW: ADMIN DASH ── */
+    #vad{flex-direction:column}
+    .topbar{background:rgba(7,7,26,.93);border-bottom:1px solid var(--border);backdrop-filter:blur(24px);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;box-shadow:0 4px 20px rgba(0,0,0,.4)}
+    .tbb{display:flex;align-items:center;gap:11px}
+    .tbi{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--purple),var(--pink));display:flex;align-items:center;justify-content:center;font-size:.85rem;color:#fff}
+    .tbt{font-family:var(--fd);font-size:.88rem;font-weight:700;letter-spacing:.03em}
+    .tbs{font-size:.65rem;color:var(--t3);margin-top:1px}
+    .as{padding:22px 20px 48px;max-width:700px;margin:0 auto;width:100%;flex:1}
+
+    /* Tabs */
+    .tabs{display:flex;gap:4px;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r-md);padding:4px;margin-bottom:24px}
+    .tab{flex:1;padding:10px;border-radius:10px;font-size:.76rem;font-weight:700;color:var(--t3);cursor:pointer;transition:all .22s var(--ease);text-align:center;letter-spacing:.04em;display:flex;align-items:center;justify-content:center;gap:6px}
+    .tab.on{background:linear-gradient(135deg,rgba(0,212,255,.15),rgba(124,58,237,.1));color:var(--cyan);border:1px solid rgba(0,212,255,.2)}
+    .pane{display:none}
+    .pane.on{display:block}
+
+    /* Action grid */
+    .ag{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+    .at{padding:20px 16px;border-radius:var(--r-md);display:flex;flex-direction:column;gap:9px;cursor:pointer;transition:all .24s var(--ease);position:relative;overflow:hidden}
+    .at::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity .26s;border-radius:inherit}
+    .at:hover::before{opacity:1}
+    .at:hover{transform:translateY(-2px)}
+    .at.tc::before{background:rgba(0,212,255,.06)}
+    .at.tg::before{background:rgba(16,185,129,.06)}
+    .at.tp::before{background:rgba(124,58,237,.06)}
+    .at.tr::before{background:rgba(239,68,68,.06)}
+    .ati{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:.9rem}
+    .ic{background:rgba(0,212,255,.14);color:var(--cyan)}
+    .ig{background:rgba(16,185,129,.14);color:var(--green)}
+    .ip{background:rgba(124,58,237,.14);color:#a78bfa}
+    .ir{background:rgba(239,68,68,.14);color:var(--red)}
+    .isk{background:rgba(56,189,248,.14);color:var(--sky)}
+    .at h3{font-size:.86rem;font-weight:700}
+    .at p{font-size:.72rem;color:var(--t3);line-height:1.4}
+
+    /* Test list */
+    .tlist{display:flex;flex-direction:column;gap:9px}
+    .trow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px;border-radius:var(--r-md);transition:all .2s var(--ease)}
+    .trow:hover{background:rgba(255,255,255,.04)}
+    .tri h4{font-size:.88rem;font-weight:700;margin-bottom:4px}
+    .trm{display:flex;gap:12px}
+    .trm span{font-size:.7rem;color:var(--t3);display:flex;align-items:center;gap:4px}
+    .est{text-align:center;padding:36px 20px}
+    .est i{font-size:2.2rem;color:var(--t4);display:block;margin-bottom:12px}
+    .est h3{font-size:.92rem;color:var(--t2);margin-bottom:5px}
+    .est p{font-size:.78rem;color:var(--t3);line-height:1.5}
+
+    /* Cloud setup */
+    .cstep{display:flex;gap:13px;padding:14px 16px;border-radius:var(--r-md);background:rgba(255,255,255,.03);border:1px solid var(--border);margin-bottom:9px;align-items:flex-start}
+    .csn{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--cyan),var(--purple));display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:.68rem;font-weight:800;color:#000;flex-shrink:0}
+    .csb h4{font-size:.83rem;font-weight:700;margin-bottom:3px}
+    .csb p{font-size:.75rem;color:var(--t2);line-height:1.55}
+    .csb a{color:var(--cyan);text-decoration:underline}
+    .ci{display:inline-block;background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.2);color:var(--cyan);padding:1px 7px;border-radius:5px;font-family:monospace;font-size:.78em}
+    .chint{padding:12px 15px;border-radius:var(--r-sm);background:rgba(56,189,248,.08);border:1px solid rgba(56,189,248,.2);font-size:.75rem;color:var(--sky);display:flex;gap:8px;align-items:flex-start;line-height:1.55;margin-bottom:14px}
+    .cstat{display:flex;align-items:center;gap:9px;padding:12px 15px;border-radius:var(--r-sm);font-size:.8rem;font-weight:600;margin-bottom:16px}
+    .cstat.ok{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.25);color:var(--green)}
+    .cstat.fail{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);color:#fca5a5}
+    .cstat.none{background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--t3)}
+    .cpre{background:rgba(0,0,0,.4);border:1px solid rgba(0,212,255,.12);border-radius:var(--r-sm);padding:14px;font-family:monospace;font-size:.7rem;color:var(--cyan);line-height:1.7;overflow-x:auto}
+
+    /* ── VIEW: TEST ── */
+    #vt{flex-direction:column}
+    .tbar{background:rgba(7,7,26,.95);border-bottom:1px solid var(--border);backdrop-filter:blur(26px);padding:11px 20px;position:sticky;top:0;z-index:50;box-shadow:0 4px 24px rgba(0,0,0,.45)}
+    .tbr1{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px}
+    .tbtl{font-family:var(--fd);font-size:.74rem;font-weight:600;color:var(--t2);letter-spacing:.04em;max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+    .trw{position:relative;width:56px;height:56px;flex-shrink:0}
+    .trw svg{transform:rotate(-90deg);width:56px;height:56px}
+    circle.trk{fill:none;stroke:rgba(255,255,255,.07);stroke-width:3}
+    circle.prg{fill:none;stroke:var(--cyan);stroke-width:3;stroke-linecap:round;stroke-dasharray:144.51;stroke-dashoffset:0;transition:stroke-dashoffset 1s linear,stroke .5s}
+    circle.prg.warn{stroke:var(--amber)}
+    circle.prg.crit{stroke:var(--red);animation:cp .5s ease-in-out infinite}
+    @keyframes cp{0%,100%{stroke:var(--red)}50%{stroke:#dc2626}}
+    .tlbl{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:.58rem;font-weight:700}
+    .pr{display:flex;align-items:center;gap:9px}
+    .pt{flex:1;height:4px;background:rgba(255,255,255,.07);border-radius:2px;overflow:hidden}
+    .pf{height:100%;background:linear-gradient(90deg,var(--cyan),var(--purple));border-radius:2px;transition:width .4s var(--ease);position:relative}
+    .pf::after{content:'';position:absolute;right:0;top:50%;transform:translateY(-50%);width:9px;height:9px;border-radius:50%;background:var(--cyan);box-shadow:0 0 8px var(--cyan)}
+    .pl{font-size:.7rem;color:var(--t3);white-space:nowrap;min-width:44px;text-align:right;font-family:var(--fd)}
+    .tb{flex:1;padding:18px 20px 114px;max-width:720px;margin:0 auto;width:100%}
+    .qs{display:flex;gap:5px;overflow-x:auto;padding:3px 0 10px;scrollbar-width:none;margin-bottom:16px}
+    .qs::-webkit-scrollbar{display:none}
+    .qd{min-width:33px;height:33px;border-radius:8px;border:1.5px solid rgba(255,255,255,.12);background:rgba(255,255,255,.03);display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:.67rem;font-weight:700;cursor:pointer;transition:all .2s var(--ease);flex-shrink:0;color:var(--t3)}
+    .qd.ans{background:rgba(0,212,255,.1);border-color:rgba(0,212,255,.35);color:var(--cyan)}
+    .qd.cur{background:var(--cyan);border-color:var(--cyan);color:#000;box-shadow:0 0 14px rgba(0,212,255,.45);transform:scale(1.08)}
+    .qd:hover:not(.cur){background:rgba(255,255,255,.07);color:var(--t1)}
+    .qcard{padding:24px 20px;margin-bottom:14px;position:relative}
+    .qcard::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--cyan),var(--purple));border-radius:var(--r-lg) var(--r-lg) 0 0}
+    .qnt{font-size:.69rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--cyan);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+    .qnt::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--cyan);box-shadow:0 0 8px var(--cyan)}
+    .qtxt{font-size:clamp(.95rem,2.3vw,1.06rem);font-weight:500;line-height:1.7;color:var(--t1)}
+    .opts{display:flex;flex-direction:column;gap:9px}
+    .opt{display:flex;align-items:center;gap:12px;padding:14px 16px;background:rgba(255,255,255,.03);border:1.5px solid rgba(255,255,255,.08);border-radius:var(--r-md);cursor:pointer;transition:all .2s var(--ease);text-align:left;color:var(--t1);font-size:.9rem;line-height:1.5;position:relative;overflow:hidden;width:100%;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+    .opt::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(0,212,255,.07),rgba(124,58,237,.07));opacity:0;transition:opacity .2s}
+    .opt:hover::before{opacity:1}
+    .opt:hover{border-color:rgba(0,212,255,.28);transform:translateX(4px)}
+    .opt.sel{border-color:var(--cyan);background:rgba(0,212,255,.07);transform:translateX(4px);box-shadow:0 0 20px rgba(0,212,255,.1)}
+    .opt.sel::before{opacity:1}
+    .olt{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.07);border:1.5px solid rgba(255,255,255,.13);display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:.72rem;font-weight:700;flex-shrink:0;transition:all .2s var(--ease);color:var(--t2)}
+    .opt.sel .olt{background:var(--cyan);border-color:var(--cyan);color:#000;box-shadow:0 0 14px rgba(0,212,255,.55);animation:ltP .28s var(--spring)}
+    @keyframes ltP{0%{transform:scale(1)}50%{transform:scale(1.22)}100%{transform:scale(1)}}
+    .qwrap{animation:qI .3s var(--ease) both}
+    @keyframes qI{from{opacity:0;transform:translateX(26px)}to{opacity:1;transform:translateX(0)}}
+    .qwrap.lft{animation:qIL .3s var(--ease) both}
+    @keyframes qIL{from{opacity:0;transform:translateX(-26px)}to{opacity:1;transform:translateX(0)}}
+    .bnav{position:fixed;bottom:0;left:0;right:0;background:rgba(7,7,26,.97);border-top:1px solid var(--border);backdrop-filter:blur(24px);padding:11px 20px;padding-bottom:max(11px,env(safe-area-inset-bottom));display:flex;align-items:center;gap:9px;z-index:100;box-shadow:0 -4px 24px rgba(0,0,0,.45)}
+    .bpb{display:flex;align-items:center;gap:5px;padding:13px 16px;border-radius:var(--r-md);background:var(--glass);border:1px solid var(--border);color:var(--t1);font-weight:700;font-size:.84rem;transition:all .2s var(--ease);min-height:49px;min-width:86px;cursor:pointer;font-family:var(--fb);justify-content:center}
+    .bpb:hover:not(:disabled){border-color:rgba(0,212,255,.3);color:var(--cyan)}
+    .bpb:disabled{opacity:.28;cursor:not-allowed}
+    .bm{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:13px;border-radius:var(--r-md);font-weight:800;font-size:.87rem;font-family:var(--fb);cursor:pointer;transition:all .2s var(--ease);min-height:49px;border:none;-webkit-tap-highlight-color:transparent}
+    .bnxt{background:linear-gradient(135deg,var(--cyan),#0099cc);color:#000;box-shadow:0 4px 20px rgba(0,212,255,.3)}
+    .bnxt:hover{box-shadow:0 6px 28px rgba(0,212,255,.48);transform:translateY(-1px)}
+    .bsub{background:linear-gradient(135deg,var(--green),#059669);color:#fff;box-shadow:0 4px 20px rgba(16,185,129,.3)}
+    .bsub:hover{box-shadow:0 6px 28px rgba(16,185,129,.45);transform:translateY(-1px)}
+
+    /* MODAL */
+    .mov{position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:center;z-index:300;padding:20px;animation:movI .26s var(--ease) forwards;opacity:0}
+    @keyframes movI{to{opacity:1}}
+    .mbox{background:#0e0e25;border:1px solid rgba(255,255,255,.1);border-radius:var(--r-xl);padding:32px 26px;max-width:380px;width:100%;box-shadow:0 24px 60px rgba(0,0,0,.65);transform:scale(.88) translateY(18px);animation:mbI .34s var(--spring) forwards}
+    @keyframes mbI{to{transform:scale(1) translateY(0)}}
+    .mico{width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.35rem;margin:0 auto 16px}
+    .mico.info{background:rgba(0,212,255,.14);color:var(--cyan)}
+    .mico.warn{background:rgba(245,158,11,.14);color:var(--amber)}
+    .mico.danger{background:rgba(239,68,68,.14);color:var(--red)}
+    .mico.success{background:rgba(16,185,129,.14);color:var(--green)}
+    .mtitle{font-family:var(--fd);font-size:1.1rem;font-weight:700;text-align:center;margin-bottom:10px}
+    .mbody{font-size:.86rem;color:var(--t2);text-align:center;line-height:1.65;margin-bottom:24px}
+    .mbody strong{color:var(--t1)}
+    .macts{display:flex;gap:9px}
+    .macts .btn{flex:1}
+
+    /* TOAST */
+    .tpool{position:fixed;top:18px;left:50%;transform:translateX(-50%);z-index:400;display:flex;flex-direction:column;gap:8px;pointer-events:none;width:calc(100% - 36px);max-width:360px}
+    .tp{background:#14142e;border:1px solid var(--border);border-radius:var(--r-md);padding:12px 15px;display:flex;align-items:center;gap:10px;font-size:.83rem;box-shadow:0 8px 24px rgba(0,0,0,.45);animation:tpI .3s var(--spring) forwards;pointer-events:all;color:var(--t1)}
+    .tp.out{animation:tpO .24s var(--ease) forwards}
+    @keyframes tpI{from{opacity:0;transform:translateY(-16px) scale(.9)}to{opacity:1;transform:none}}
+    @keyframes tpO{to{opacity:0;transform:translateY(-10px) scale(.9)}}
+    .tp.success{border-color:rgba(16,185,129,.28)}.tp.error{border-color:rgba(239,68,68,.28)}.tp.warning{border-color:rgba(245,158,11,.28)}.tp.info{border-color:rgba(0,212,255,.28)}
+    .tpico{width:27px;height:27px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.7rem;flex-shrink:0}
+    .tp.success .tpico{background:rgba(16,185,129,.14);color:var(--green)}
+    .tp.error .tpico{background:rgba(239,68,68,.14);color:var(--red)}
+    .tp.warning .tpico{background:rgba(245,158,11,.14);color:var(--amber)}
+    .tp.info .tpico{background:rgba(0,212,255,.14);color:var(--cyan)}
+
+    /* FS WALL */
+    .fswall{position:fixed;inset:0;background:rgba(0,0,0,.95);backdrop-filter:blur(20px);display:flex;align-items:center;justify-content:center;z-index:600;padding:20px}
+    .fsbox{background:#160707;border:2px solid rgba(239,68,68,.44);border-radius:var(--r-xl);padding:38px 28px;max-width:380px;width:100%;text-align:center;box-shadow:0 0 60px rgba(239,68,68,.18);animation:mbI .34s var(--spring) forwards;transform:scale(.88)}
+    .fse{font-size:3rem;margin-bottom:13px;display:block;animation:fsb 1s ease-in-out infinite}
+    @keyframes fsb{0%,100%{transform:scale(1)}50%{transform:scale(1.13)}}
+    .fsbox h2{font-family:var(--fd);font-size:1.2rem;color:var(--red);margin-bottom:9px}
+    .fsbox p{color:var(--t2);font-size:.85rem;line-height:1.65;margin-bottom:18px}
+    .fswt{display:inline-flex;align-items:center;gap:6px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.28);color:var(--red);padding:5px 15px;border-radius:var(--r-full);font-size:.78rem;font-weight:700;margin-bottom:22px}
+
+    /* RESULT */
+    #vr{flex-direction:column}
+    .rh{padding:28px 20px 20px;text-align:center;border-bottom:1px solid var(--border);background:linear-gradient(180deg,rgba(0,212,255,.04),transparent)}
+    .rh::before{content:'';display:block;height:2px;background:linear-gradient(90deg,transparent,var(--cyan),var(--purple),transparent);margin-bottom:16px;margin-left:-20px;margin-right:-20px}
+    .reye{font-family:var(--fd);font-size:.66rem;letter-spacing:.18em;text-transform:uppercase;color:var(--t3);margin-bottom:6px}
+    .rtbig{font-family:var(--fd);font-size:clamp(1.4rem,4vw,1.85rem);font-weight:900;background:linear-gradient(135deg,var(--cyan),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:.04em}
+    .rs{flex:1;padding:22px 20px 48px;max-width:720px;margin:0 auto;width:100%}
+    .scard{padding:32px 20px;text-align:center;margin-bottom:18px}
+    .rw{position:relative;width:162px;height:162px;margin:0 auto 20px}
+    .rw svg{transform:rotate(-90deg);width:162px;height:162px}
+    circle.rtrk{fill:none;stroke:rgba(255,255,255,.05);stroke-width:8}
+    circle.rprg{fill:none;stroke:var(--cyan);stroke-linecap:round;stroke-width:8;stroke-dasharray:439.82;stroke-dashoffset:439.82;transition:stroke-dashoffset 2s cubic-bezier(.4,0,.2,1) .5s;filter:drop-shadow(0 0 8px var(--cyan))}
+    .rc{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+    .sb{font-family:var(--fd);font-size:2.9rem;font-weight:900;background:linear-gradient(135deg,var(--cyan),#fff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1}
+    .sof{font-size:.78rem;color:var(--t3);margin-top:4px}
+    .sp{font-family:var(--fd);font-size:2rem;font-weight:700;margin-bottom:5px}
+    .sp.ex{color:var(--green)}.sp.gd{color:var(--cyan)}.sp.av{color:var(--amber)}.sp.po{color:var(--red)}
+    .sg{font-size:.84rem;color:var(--t2);margin-bottom:24px}
+    .s3{display:grid;grid-template-columns:repeat(3,1fr);gap:11px;margin-bottom:20px}
+    .st{padding:13px 8px;border-radius:var(--r-md);text-align:center}
+    .st.c{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.2)}
+    .st.w{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2)}
+    .st.s{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.2)}
+    .sn{display:block;font-family:var(--fd);font-size:1.55rem;font-weight:700}
+    .st.c .sn{color:var(--green)}.st.w .sn{color:var(--red)}.st.s .sn{color:var(--amber)}
+    .sl2{font-size:.67rem;color:var(--t3);font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+    .bch{display:flex;align-items:flex-end;gap:9px;height:70px;padding-bottom:24px;margin-top:10px}
+    .bcol{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end}
+    .bfill{width:100%;border-radius:5px 5px 0 0;transition:height 1.1s var(--ease);min-height:3px}
+    .blb{font-size:.61rem;color:var(--t3)}.bvl{font-size:.7rem;font-weight:700}
+    .smeta{display:flex;align-items:center;gap:9px;padding:12px 15px;border-radius:var(--r-md);background:var(--glass);border:1px solid var(--border);margin-bottom:16px;font-size:.8rem}
+    .smeta i{color:var(--cyan);flex-shrink:0}
+    .smeta .stx{color:var(--t2);line-height:1.5}
+    .smeta strong{color:var(--t1)}
+    .fbar{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.28);border-radius:var(--r-md);padding:13px 15px;display:flex;align-items:center;gap:10px;margin-bottom:16px;font-size:.82rem;color:#fca5a5}
+    .fbar i{color:var(--red);font-size:.95rem;flex-shrink:0}
+    .ecard{padding:20px;margin-bottom:18px}
+    .elbl{font-family:var(--fd);font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--t3);text-align:center;margin-bottom:13px}
+    .egrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .ebtn{display:flex;align-items:center;justify-content:center;gap:6px;padding:12px;border-radius:var(--r-md);border:1px solid var(--border);background:var(--glass);color:var(--t2);cursor:pointer;transition:all .2s var(--ease);font-size:.78rem;font-weight:600;font-family:var(--fb)}
+    .ebtn:hover{border-color:rgba(0,212,255,.3);color:var(--cyan);background:rgba(0,212,255,.05);transform:translateY(-2px)}
+    .bkdl{display:flex;flex-direction:column;gap:9px}
+    .bkd{padding:16px;border-radius:var(--r-md);background:var(--glass);border-left:3px solid transparent;border-top:1px solid var(--border);border-right:1px solid var(--border);border-bottom:1px solid var(--border);transition:transform .2s var(--ease)}
+    .bkd:hover{transform:translateX(3px)}
+    .bkd.correct{border-left-color:var(--green);background:rgba(16,185,129,.04)}
+    .bkd.wrong{border-left-color:var(--red);background:rgba(239,68,68,.04)}
+    .bkd.skipped{border-left-color:var(--amber);background:rgba(245,158,11,.04)}
+    .bkdh{display:flex;align-items:flex-start;justify-content:space-between;gap:9px;margin-bottom:9px}
+    .bkdqn{font-size:.68rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--t3)}
+    .bkdqt{font-size:.86rem;line-height:1.6;margin-bottom:9px;color:var(--t1)}
+    .bkdos{display:flex;flex-direction:column;gap:5px}
+    .bkdo{display:flex;align-items:center;gap:8px;padding:7px 11px;border-radius:var(--r-sm);font-size:.78rem}
+    .bkdd{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+    .bkdo.oks{background:rgba(16,185,129,.1);color:#6ee7b7}.bkdo.oks .bkdd{background:var(--green)}
+    .bkdo.bds{background:rgba(239,68,68,.1);color:#fca5a5}.bkdo.bds .bkdd{background:var(--red)}
+    .bkdo.oka{background:rgba(16,185,129,.07);color:#86efac}.bkdo.oka .bkdd{background:var(--green)}
+
+    /* DEV FOOTER */
+    .devf{text-align:center;padding:28px 20px;border-top:1px solid var(--border);margin-top:30px;position:relative}
+    .devf::before{content:'';position:absolute;top:-1px;left:15%;right:15%;height:1px;background:linear-gradient(90deg,transparent,var(--cyan),var(--purple),transparent)}
+    .dav{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--cyan),var(--purple));display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:1rem;font-weight:800;color:#000;margin:0 auto 12px;box-shadow:0 0 24px rgba(0,212,255,.35);animation:dap 3s ease-in-out infinite}
+    @keyframes dap{0%,100%{box-shadow:0 0 24px rgba(0,212,255,.35)}50%{box-shadow:0 0 40px rgba(0,212,255,.65),0 0 60px rgba(124,58,237,.22)}}
+    .dm{font-size:.68rem;color:var(--t3);letter-spacing:.12em;text-transform:uppercase;margin-bottom:5px}
+    .dname{font-family:var(--fd);font-size:1.05rem;font-weight:800;letter-spacing:.04em;background:linear-gradient(135deg,var(--cyan),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:5px}
+    .drole{font-size:.72rem;color:var(--t3);margin-bottom:12px}
+    .dchips{display:flex;flex-wrap:wrap;justify-content:center;gap:6px}
+
+    @media(min-width:640px){.ag{grid-template-columns:repeat(4,1fr)}}
+    @media(min-width:768px){.tb,.rs,.as{padding-left:30px;padding-right:30px}.tbar,.topbar{padding:13px 30px}}
+    @media(max-width:360px){.sc{padding:26px 18px}.opt{padding:12px 13px;gap:10px}}
+    @media print{.bg-wrap,.tbar,.bnav,.ecard,.topbar,.admin-chip,.tpool,.brow,.dev-strip,.cbar{display:none!important}body{background:#fff!important;color:#111!important}.card,.bkd,.scard{background:#fff!important;border:1px solid #ddd!important;box-shadow:none!important}#vr{display:flex!important;opacity:1!important;transform:none!important}}
+  </style>
+</head>
+<body>
+
+<div class="bg-wrap">
+  <div class="bg-grid"></div>
+  <div class="orb o1"></div><div class="orb o2"></div><div class="orb o3"></div>
+</div>
+
+<!-- Cloud bar -->
+<div class="cbar" id="cbar">
+  <i class="fas fa-circle-notch spin" id="cbico"></i>
+  <span id="cbmsg">Syncing…</span>
+</div>
+
+<div class="tpool" id="tpool"></div>
+<div id="mhost"></div>
+
+<!-- FS Wall -->
+<div id="fswall" class="fswall hid">
+  <div class="fsbox">
+    <span class="fse">⚠️</span>
+    <h2>Fullscreen Required</h2>
+    <p>You exited fullscreen. This test requires fullscreen for integrity. Return immediately.</p>
+    <div class="fswt"><i class="fas fa-triangle-exclamation"></i> Warning <span id="fsn">1</span> of 2</div>
+    <button class="btn br bw" onclick="reFS()"><i class="fas fa-expand"></i> Return to Fullscreen</button>
+  </div>
+</div>
+
+<div id="app">
+
+<!-- VIEW: START -->
+<div id="vs" class="view active">
+  <button class="admin-chip" onclick="goAdmin()"><i class="fas fa-shield-halved"></i> Admin</button>
+  <div class="hero">
+    <div class="logo-wrap"><div class="li">EF</div></div>
+    <div class="bn">EXAMFORGE</div>
+    <div class="bsub">Online Test Platform</div>
+  </div>
+  <div class="sc card">
+    <div class="sch">
+      <h2>Begin Your Assessment</h2>
+      <p>Enter your name and pick a test to start</p>
+    </div>
+    <div class="fstack">
+      <div class="fg"><label class="fl">Your Full Name</label>
+        <div class="fw hi"><i class="fas fa-user-pen fi"></i>
+          <input type="text" id="uname" class="ff" placeholder="e.g. Rahul Sharma" autocomplete="name">
+        </div>
+      </div>
+      <div class="fg"><label class="fl">Select Test</label>
+        <div class="fw hi"><i class="fas fa-layer-group fi"></i>
+          <select id="tsel" class="ff" onchange="onTchg()"><option value="">Loading…</option></select>
+        </div>
+      </div>
+      <div class="ichips" id="ichips" style="display:none">
+        <span class="badge bc" id="cq"><i class="fas fa-circle-question"></i> — Qs</span>
+        <span class="badge bpc" id="ct"><i class="fas fa-clock"></i> — min</span>
+      </div>
+    </div>
+    <div class="hr"></div>
+    <button class="btn bp blg bw shine" onclick="beginTest()">
+      <i class="fas fa-bolt"></i> Start Test
+    </button>
+    <div style="text-align:center;margin-top:12px">
+      <span style="font-size:.72rem;color:var(--t3);cursor:pointer" onclick="fetchCloud(true)">
+        <i class="fas fa-rotate" style="color:var(--cyan)"></i> Refresh Tests
+      </span>
+    </div>
+  </div>
+  <div class="dev-strip"><div class="dd"></div>Built by <span class="dn">&nbsp;Azhar Khan</span></div>
+</div>
+
+<!-- VIEW: ADMIN LOGIN -->
+<div id="val" class="view">
+  <div class="alc card">
+    <div class="alh">
+      <span class="badge bpc"><i class="fas fa-shield-halved"></i> Admin Portal</span>
+      <h1>Secure Login</h1>
+      <p>Sign in to manage tests and cloud settings</p>
+    </div>
+    <div id="aerr" class="ebar hid"><i class="fas fa-circle-exclamation"></i><span id="aemsg">Invalid credentials.</span></div>
+    <div class="fstack">
+      <div class="fg"><label class="fl">Username</label>
+        <div class="fw hi"><i class="fas fa-user-shield fi"></i>
+          <input type="text" id="au" class="ff" placeholder="admin" autocomplete="username">
+        </div>
+      </div>
+      <div class="fg"><label class="fl">Password</label>
+        <div class="fw hi"><i class="fas fa-lock fi"></i>
+          <input type="password" id="ap" class="ff" placeholder="••••••••" autocomplete="current-password">
+        </div>
+      </div>
+      <button class="btn bpu bw" style="margin-top:4px" onclick="doLogin()">
+        <i class="fas fa-arrow-right-to-bracket"></i> Sign In
+      </button>
+    </div>
+    <div class="brow" onclick="nav('start')"><i class="fas fa-arrow-left"></i> Back to Home</div>
+  </div>
+</div>
+
+<!-- VIEW: ADMIN DASH -->
+<div id="vad" class="view">
+  <div class="topbar">
+    <div class="tbb">
+      <div class="tbi"><i class="fas fa-shield-halved"></i></div>
+      <div><div class="tbt">Admin Dashboard</div><div class="tbs">ExamForge Control Panel</div></div>
+    </div>
+    <button class="btn bs bsm" onclick="doLogout()"><i class="fas fa-right-from-bracket"></i> Logout</button>
+  </div>
+  <div class="as">
+    <div class="tabs">
+      <div class="tab on" id="tab-tests" onclick="switchTab('tests')"><i class="fas fa-layer-group"></i> Tests</div>
+      <div class="tab" id="tab-results" onclick="switchTab('results')"><i class="fas fa-square-poll-vertical"></i> Results</div>
+      <div class="tab" id="tab-cloud" onclick="switchTab('cloud')"><i class="fas fa-cloud"></i> Cloud Sync</div>
+    </div>
+
+    <!-- PANE: TESTS -->
+    <div class="pane on" id="pane-tests">
+      <div id="cconn"></div>
+      <div style="margin-bottom:24px">
+        <div class="sl"><i class="fas fa-bolt"></i> Actions</div>
+        <div class="ag">
+          <div class="at card ch tc" onclick="document.getElementById('finput').click()">
+            <div class="ati ic"><i class="fas fa-upload"></i></div>
+            <div><h3>Upload Test</h3><p>Import JSON file</p></div>
+          </div>
+          <div class="at card ch" style="background:rgba(255,255,255,.04)" onclick="fetchCloud(true)">
+            <div class="ati isk"><i class="fas fa-cloud-arrow-down"></i></div>
+            <div><h3>Sync Cloud</h3><p>Pull latest tests</p></div>
+          </div>
+          <div class="at card ch" onclick="exportAll()">
+            <div class="ati ig"><i class="fas fa-download"></i></div>
+            <div><h3>Export JSON</h3><p>Download all tests</p></div>
+          </div>
+          <div class="at card ch tr" onclick="clearAll()">
+            <div class="ati ir"><i class="fas fa-trash"></i></div>
+            <div><h3>Clear All</h3><p>Delete everything</p></div>
+          </div>
+        </div>
+        <input type="file" id="finput" accept=".json" onchange="uploadJSON(event)">
+      </div>
+      <div>
+        <div class="sl"><i class="fas fa-database"></i> Test Library (<span id="tc">0</span>)</div>
+        <div class="tlist" id="admlist"></div>
+      </div>
+    </div>
+
+    <!-- PANE: RESULTS -->
+    <div class="pane" id="pane-results">
+      <div style="margin-bottom:20px; display:flex; justify-content:space-between; align-items:center;">
+        <div class="sl" style="margin-bottom:0"><i class="fas fa-chart-line"></i> Student Scores (<span id="rc_count">0</span>)</div>
+        <button class="btn bs bxs" onclick="fetchResults(true)"><i class="fas fa-rotate"></i> Refresh</button>
+      </div>
+      <div id="rconn"></div>
+      <div class="tlist" id="reslist"></div>
+    </div>
+
+    <!-- PANE: CLOUD -->
+    <div class="pane" id="pane-cloud">
+      <div class="chint" style="background:rgba(16,185,129,.08);border-color:rgba(16,185,129,.25);color:var(--green)">
+        <i class="fas fa-circle-check" style="flex-shrink:0;margin-top:1px;color:var(--green)"></i>
+        <span><strong>API Key pre-configured!</strong> You only need to do Step 1 below — click <strong>"Create New Bin"</strong> and your tests will sync to all student devices instantly.</span>
+      </div>
+
+      <div class="cstat none" id="cstatbox">
+        <i class="fas fa-circle-xmark"></i> Not connected — enter credentials below
+      </div>
+
+      <div class="fstack" style="margin-bottom:18px">
+        <div class="fg"><label class="fl">Tests Bin ID</label>
+          <div class="fw hi"><i class="fas fa-fingerprint fi"></i>
+            <input type="text" id="binid" class="ff" placeholder="e.g. 64a3f2c4acd3cb34b85c1234">
+          </div>
+          <span style="font-size:.68rem;color:var(--t3)">Storage for your test library</span>
+        </div>
+        <div class="fg"><label class="fl">Results Bin ID</label>
+          <div class="fw hi"><i class="fas fa-chart-column fi"></i>
+            <input type="text" id="resbinid" class="ff" placeholder="e.g. 64a3f2c4acd3cb34b85c1234">
+          </div>
+          <span style="font-size:.68rem;color:var(--t3)">Storage for student test scores</span>
+        </div>
+        <div class="fg"><label class="fl">Master API Key &nbsp;<span class="badge bgc" style="font-size:.58rem;padding:2px 8px">✓ Pre-configured</span></label>
+          <div class="fw hi"><i class="fas fa-key fi"></i>
+            <input type="password" id="apikey" class="ff" placeholder="Pre-configured — no action needed">
+          </div>
+          <span style="font-size:.68rem;color:var(--green)">✓ API key is already embedded in this app</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px">
+          <button class="btn bp" style="justify-content:center" onclick="saveCloud()"><i class="fas fa-cloud-arrow-up"></i> Save &amp; Test</button>
+          <button class="btn bsk" style="justify-content:center" onclick="createResultsBin()"><i class="fas fa-plus"></i> Create Results Bin</button>
+        </div>
+      </div>
+
+      <div class="hr"></div>
+      <div class="sl"><i class="fas fa-map"></i> One-Time Setup (2 steps only)</div>
+      <div class="cstep"><div class="csn">1</div><div class="csb"><h4>Create Your Storage Bin</h4><p>Click <strong>"Create New Bin"</strong> button above. The Bin ID will auto-fill. Then click <strong>"Save &amp; Test"</strong>. That's it — API key is already embedded.</p></div></div>
+      <div class="cstep"><div class="csn">2</div><div class="csb"><h4>Upload Tests &amp; Share</h4><p>Go to the <strong>Tests tab</strong>, upload your test JSON, and share your <strong>GitHub Pages URL</strong> with students. They open the link — tests load automatically on any device.</p></div></div>
+
+      <div class="hr"></div>
+      <div class="sl"><i class="fas fa-code"></i> JSON Test Format</div>
+      <pre class="cpre">{
+  "title":     "Test Name Here",
+  "duration":  600,
+  "questions": [
+    {
+      "id":       1,
+      "question": "Question text?",
+      "options":  ["Option A","Option B","Option C","Option D"],
+      "correct":  1
+    }
+  ]
+}</pre>
+      <p style="font-size:.72rem;color:var(--t3);margin-top:9px;line-height:1.55">
+        <i class="fas fa-circle-info" style="color:var(--cyan)"></i>&nbsp;
+        <span class="ci">correct</span> = 0-based index of correct option.&nbsp;
+        <span class="ci">duration</span> in seconds.
+        You can upload one test or an array <span class="ci">[…]</span> of tests at once.
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- VIEW: TEST -->
+<div id="vt" class="view">
+  <div class="tbar">
+    <div class="tbr1">
+      <div class="tbtl" id="tbtl">Test</div>
+      <div class="trw">
+        <svg viewBox="0 0 56 56">
+          <circle class="trk" cx="28" cy="28" r="23"/>
+          <circle class="prg" id="tprg" cx="28" cy="28" r="23"/>
+        </svg>
+        <div class="tlbl" id="tlbl">--:--</div>
+      </div>
+    </div>
+    <div class="pr">
+      <div class="pt"><div class="pf" id="pfill" style="width:0%"></div></div>
+      <div class="pl" id="plbl">1 / 1</div>
+    </div>
+  </div>
+  <div class="tb">
+    <div class="qs" id="qstrip"></div>
+    <div id="qhost"></div>
+  </div>
+  <div class="bnav">
+    <button class="bpb" id="bnprev" onclick="prevQ()"><i class="fas fa-chevron-left"></i> Prev</button>
+    <button class="bm bnxt" id="bnnext" onclick="nextQ()">Next <i class="fas fa-chevron-right"></i></button>
+    <button class="bm bsub hid" id="bnsub" onclick="askSub()"><i class="fas fa-circle-check"></i> Submit</button>
+  </div>
+</div>
+
+<!-- VIEW: RESULT -->
+<div id="vr" class="view">
+  <div class="rh">
+    <div class="reye">Evaluation Complete</div>
+    <div class="rtbig" id="rttl">Results</div>
+  </div>
+  <div class="rs">
+    <div id="fbar" class="fbar hid"><i class="fas fa-flag"></i><span id="ftxt">Auto-submitted: fullscreen violation flagged.</span></div>
+
+    <div class="scard card stg" style="animation-delay:.06s">
+      <div class="rw">
+        <svg viewBox="0 0 162 162">
+          <circle class="rtrk" cx="81" cy="81" r="70"/>
+          <circle class="rprg" id="rprg" cx="81" cy="81" r="70"/>
+        </svg>
+        <div class="rc">
+          <div class="sb" id="scnum">0</div>
+          <div class="sof" id="scof">/ 0</div>
+        </div>
+      </div>
+      <div class="sp" id="scpct">0%</div>
+      <div class="sg" id="scgrade">—</div>
+      <div class="s3">
+        <div class="st c"><span class="sn" id="stc">0</span><span class="sl2">Correct</span></div>
+        <div class="st w"><span class="sn" id="stw">0</span><span class="sl2">Wrong</span></div>
+        <div class="st s"><span class="sn" id="sts">0</span><span class="sl2">Skipped</span></div>
+      </div>
+      <div class="bch" id="bch"></div>
+    </div>
+
+    <div class="smeta card stg" style="animation-delay:.13s">
+      <i class="fas fa-circle-info"></i>
+      <div class="stx"><strong id="mn">—</strong> &nbsp;·&nbsp; <strong id="mt">—</strong> &nbsp;·&nbsp; Reason: <strong id="mr">—</strong></div>
+    </div>
+
+    <div class="ecard card stg" style="animation-delay:.2s">
+      <div class="elbl"><i class="fas fa-share-nodes"></i>&nbsp; Export &amp; Share</div>
+      <div class="egrid">
+        <button class="ebtn" onclick="doPDF()"><i class="fas fa-file-pdf"></i> PDF Report</button>
+        <button class="ebtn" onclick="doEmail()"><i class="fas fa-envelope"></i> Email Result</button>
+        <button class="ebtn" onclick="doCopy()"><i class="fas fa-link"></i> Copy Link</button>
+        <button class="ebtn" onclick="doRetake()"><i class="fas fa-rotate-right"></i> Retake</button>
+      </div>
+    </div>
+
+    <div class="stg" style="animation-delay:.28s">
+      <div class="sl" style="margin-bottom:13px"><i class="fas fa-table-list"></i> Detailed Breakdown</div>
+      <div class="bkdl" id="bkdlist"></div>
+    </div>
+
+    <div class="devf stg" style="animation-delay:.36s">
+      <div class="dav">AK</div>
+      <div class="dm">Platform by</div>
+      <div class="dname">Azhar Khan</div>
+      <div class="drole">CS Student · Acropolis Institute of Technology &amp; Research · Indore</div>
+      <div class="dchips">
+        <span class="badge bc"><i class="fas fa-graduation-cap"></i> B.Tech CSE '27</span>
+        <span class="badge bpc">Spring Boot</span>
+        <span class="badge bgc">230+ LeetCode</span>
+        <span class="badge bac"><i class="fas fa-trophy"></i> Hackathon Builder</span>
+      </div>
+    </div>
+
+    <div style="text-align:center;margin-top:26px">
+      <button class="btn bs" onclick="nav('start')"><i class="fas fa-house"></i> Back to Home</button>
+    </div>
+  </div>
+</div>
+
+</div><!-- #app -->
+
+<script>
+/*
+ ╔═══════════════════════════════════════════════════╗
+ ║  ExamForge — Cloud Sync Edition                   ║
+ ║  Developer : Azhar Khan                           ║
+ ║  Institute : Acropolis Inst. of Tech., Indore     ║
+ ║  Storage   : JSONBin.io REST API                  ║
+ ╚═══════════════════════════════════════════════════╝
+*/
+
+// ── CLOUD ─────────────────────────────────────────────
+const CLOUD = {
+  BASE: 'https://api.jsonbin.io/v3/b',
+  // API key pre-configured — admin only needs to Create Bin once
+  DEFAULT_KEY: '$2a$10$ei2npp80wBxbjDuw2fA0xe6CAuZZpRdxfWvMYJpyNPR4o3C84if2C',
+  DEFAULT_BIN: '69ed9f4faaba8821973adf8d',
+  DEFAULT_RES_BIN: '69edb0b6856a68218972fdd5',
+  get binId()  { return localStorage.getItem('ef_bin')  || CLOUD.DEFAULT_BIN },
+  get apiKey() { return localStorage.getItem('ef_key')  || CLOUD.DEFAULT_KEY },
+  get resBin() { return localStorage.getItem('ef_res_bin') || CLOUD.DEFAULT_RES_BIN },
+  get ready()  { return !!this.binId }
+};
+
+// ── STATE ──────────────────────────────────────────────
+const S = {
+  tests:[], test:null, qi:0, ans:{},
+  timer:null, tLeft:0, tTotal:0,
+  name:'', reason:'manual', fsW:0, active:false, results:[]
+};
+const CREDS = { u:'admin', p:'examforge@2024' };
+const ALPHA  = ['A','B','C','D','E','F'];
+
+// ── BOOT ──────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  prefillCloud();
+  updateCSB();
+  fetchCloud(false);
+  document.getElementById('ap').addEventListener('keydown', e => e.key==='Enter' && doLogin());
+  document.getElementById('uname').addEventListener('keydown', e => e.key==='Enter' && beginTest());
+});
+
+// ── JSONBIN ────────────────────────────────────────────
+async function fetchCloud(manual=false) {
+  if (!CLOUD.binId) {
+    loadLocal(); fillSel();
+    if (manual) toast('warning','No cloud bin configured. Using local data.');
+    return;
+  }
+  if (manual) showCBar('syncing','Fetching latest tests…');
+  try {
+    const headers = CLOUD.apiKey ? {'X-Master-Key': CLOUD.apiKey} : {};
+    const res = await fetch(`${CLOUD.BASE}/${CLOUD.binId}/latest`, { headers });
+    if (!res.ok) {
+      let detail = '';
+      try {
+        const j = await res.json();
+        detail = j.message || (j.errors ? j.errors.map(e => e.message).join(', ') : JSON.stringify(j));
+      } catch { detail = await res.text(); }
+      console.error('JSONBin Fetch Error:', detail);
+      throw new Error(`HTTP ${res.status} — ${detail}`);
+    }
+    const json = await res.json();
+    const rec   = json.record;
+    // support both {tests:[...]} wrapper and raw array
+    const data  = (rec && Array.isArray(rec.tests)) ? rec.tests
+                : Array.isArray(rec) ? rec : [];
+    S.tests = data.filter(t => t && typeof t.title === 'string');
+    localStorage.setItem('ef_tests', JSON.stringify(S.tests));
+    fillSel();
+    if (manual) { showCBar('ok',`✓ Synced — ${S.tests.length} test(s) loaded`); toast('success',`Tests refreshed (${S.tests.length} found).`); }
+  } catch(e) {
+    loadLocal(); fillSel();
+    if (manual) { showCBar('err','✕ Sync failed — showing cached tests'); toast('error','Cloud sync failed: '+e.message); }
+  }
+}
+
+async function pushCloud() {
+  if (!CLOUD.ready) { toast('warning','Cloud not configured — saved locally only.'); return; }
+  showCBar('syncing','Saving to cloud…');
+  try {
+    const res = await fetch(`${CLOUD.BASE}/${CLOUD.binId}`, {
+      method:'PUT',
+      headers:{'Content-Type':'application/json','X-Master-Key':CLOUD.apiKey},
+      body:JSON.stringify({ tests: S.tests })
+    });
+    if (!res.ok) {
+      let detail = '';
+      try {
+        const j = await res.json();
+        detail = j.message || (j.errors ? j.errors.map(e => e.message).join(', ') : JSON.stringify(j));
+      } catch { detail = await res.text(); }
+      console.error('JSONBin Push Error:', detail);
+      throw new Error(`HTTP ${res.status} — ${detail}`);
+    }
+    showCBar('ok',`✓ Saved — ${S.tests.length} test(s) live on all devices`);
+    toast('success','Tests pushed to cloud! All student devices will see the update.');
+  } catch(e) {
+    showCBar('err','✕ Cloud push failed — locally saved');
+    toast('error','Cloud push failed: '+e.message);
+  }
+}
+
+// ── RESULTS CLOUD ─────────────────────────────────────
+async function pushResultToCloud(data) {
+  if (!CLOUD.resBin) return;
+  console.log('Pushing result to cloud...', data);
+  try {
+    const res = await fetch(`${CLOUD.BASE}/${CLOUD.resBin}/latest`, {
+      headers: { 'X-Master-Key': CLOUD.apiKey }
+    });
+    let list = [];
+    if (res.ok) {
+      const json = await res.json();
+      const rec = json.record;
+      list = Array.isArray(rec) ? rec : (rec && Array.isArray(rec.results)) ? rec.results : [];
+    }
+    list.unshift(data);
+    await fetch(`${CLOUD.BASE}/${CLOUD.resBin}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'X-Master-Key': CLOUD.apiKey },
+      body: JSON.stringify(list)
+    });
+    console.log('Result pushed successfully.');
+  } catch(e) {
+    console.error('Failed to push result to cloud:', e);
+  }
+}
+
+async function fetchResults(manual=false) {
+  if (!CLOUD.resBin) return;
+  if (manual) showCBar('syncing', 'Fetching results…');
+  try {
+    const res = await fetch(`${CLOUD.BASE}/${CLOUD.resBin}/latest`, {
+      headers: { 'X-Master-Key': CLOUD.apiKey }
+    });
+    if (!res.ok) throw new Error("Could not fetch results.");
+    const json = await res.json();
+    const rec = json.record;
+    S.results = Array.isArray(rec) ? rec : (rec && Array.isArray(rec.results)) ? rec.results : [];
+    renderResultsList();
+    if (manual) showCBar('ok', `✓ ${S.results.length} results loaded`);
+  } catch(e) {
+    if (manual) { showCBar('err', '✕ Fetch failed'); toast('error', e.message); }
+  }
+}
+
+function renderResultsList() {
+  const el = document.getElementById('reslist');
+  const count = document.getElementById('rc_count');
+  if (count) count.textContent = S.results.length;
+  if (!el) return;
+  if (!S.results.length) {
+    el.innerHTML = `<div class="est card" style="padding:36px 20px"><i class="fas fa-chart-line"></i><h3>No Results Yet</h3><p>When students submit tests, their scores will appear here.</p></div>`;
+    return;
+  }
+  el.innerHTML = S.results.map((r, i) => {
+    const pct = Math.round((r.score / r.total) * 100);
+    const date = new Date(r.time).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    const badge = pct >= 80 ? 'bgc' : pct >= 50 ? 'bc' : 'brc';
+    return `
+      <div class="trow card stg" style="animation-delay:${i * 0.05}s; align-items:flex-start; padding:16px">
+        <div style="flex:1">
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px">
+            <h4 style="margin:0">${esc(r.name)}</h4>
+            <span class="badge ${badge}">${pct}%</span>
+          </div>
+          <div class="trm" style="flex-wrap:wrap">
+            <span><i class="fas fa-file-lines"></i> ${esc(r.test)}</span>
+            <span><i class="fas fa-check-double"></i> ${r.score}/${r.total}</span>
+            <span><i class="fas fa-clock"></i> ${date}</span>
+            <span style="text-transform:capitalize; font-weight:600; color:var(--cyan)">${r.reason.replace('_',' ')}</span>
+          </div>
+        </div>
+        <button class="btn br bxs" onclick="delResult(${i})"><i class="fas fa-trash"></i></button>
+      </div>`;
+  }).join('');
+}
+
+async function delResult(i) {
+  showModal({
+    type: 'danger', icon: 'fa-trash', title: 'Delete Result',
+    body: `Delete result for <strong>"${esc(S.results[i].name)}"</strong>?`,
+    actions: [
+      { label: 'Cancel', cls: 'bs', fn: closeModal },
+      { label: 'Delete', cls: 'br', fn: async () => {
+        S.results.splice(i, 1);
+        renderResultsList();
+        closeModal();
+        showCBar('syncing', 'Updating cloud…');
+        try {
+          await fetch(`${CLOUD.BASE}/${CLOUD.resBin}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', 'X-Master-Key': CLOUD.apiKey },
+            body: JSON.stringify(S.results)
+          });
+          showCBar('ok', '✓ Deleted');
+        } catch(e) {
+          showCBar('err', '✕ Sync failed');
+          toast('error', 'Cloud update failed');
+        }
+      }}
+    ]
+  });
+}
+
+async function createBin() { await _createBin('Tests', 'binid', 'ef_bin'); }
+async function createResultsBin() { await _createBin('Results', 'resbinid', 'ef_res_bin'); }
+
+async function _createBin(name, inputId, storageKey) {
+  const key = document.getElementById('apikey').value.trim();
+  if (!key) { toast('warning','Enter your Master API Key first.'); return; }
+  showCBar('syncing',`Creating ${name} bin…`);
+  try {
+    const res = await fetch(`${CLOUD.BASE}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Master-Key': key,
+        'X-Bin-Name': `ExamForge-${name}`,
+        'X-Bin-Private': 'false'
+      },
+      body: JSON.stringify(name==='Tests'? { tests: [] } : { results: [] })
+    });
+    if (!res.ok) {
+      let detail = '';
+      try {
+        const j = await res.json();
+        detail = j.message || (j.errors ? j.errors.map(e => e.message).join(', ') : JSON.stringify(j));
+      } catch { detail = await res.text(); }
+      console.error(`JSONBin Create ${name} Error:`, detail);
+      throw new Error(`HTTP ${res.status} — ${detail}`);
+    }
+    const json = await res.json();
+    const id = json.metadata.id;
+    document.getElementById(inputId).value = id;
+    localStorage.setItem(storageKey, id);
+    localStorage.setItem('ef_key', key);
+    showCBar('ok', `✓ ${name} Bin created: ${id}`);
+    updateCSB();
+    toast('success', `${name} bin created! ID: ${id}`);
+  } catch(e) {
+    showCBar('err', '✕ Create failed');
+    toast('error', `Create ${name} bin failed: ` + e.message);
+  }
+}
+
+async function saveCloud() {
+  const binId = document.getElementById('binid').value.trim();
+  const resBinId = document.getElementById('resbinid').value.trim();
+  const key   = document.getElementById('apikey').value.trim();
+  if (!binId) { toast('warning','Tests Bin ID is required.'); return; }
+  if (!key)   { toast('warning','API Key is required.'); return; }
+  showCBar('syncing', 'Testing connections…');
+  try {
+    const r1 = await fetch(`${CLOUD.BASE}/${binId}/latest`, { headers: { 'X-Master-Key': key } });
+    if (!r1.ok) throw new Error("Tests Bin access failed.");
+    localStorage.setItem('ef_bin', binId);
+    if (resBinId) localStorage.setItem('ef_res_bin', resBinId);
+    localStorage.setItem('ef_key', key);
+    showCBar('ok', '✓ Cloud connected!');
+    updateCSB();
+    toast('success', 'Settings saved!');
+    await fetchCloud(true);
+  } catch(e) {
+    showCBar('err', '✕ Connection failed');
+    toast('error', 'Cloud error: ' + e.message);
+  }
+}
+
+// ── LOCAL ──────────────────────────────────────────────
+function loadLocal() {
+  try { const r=localStorage.getItem('ef_tests'); S.tests=r?JSON.parse(r):[]; }
+  catch { S.tests=[]; }
+}
+function persistLocal() { localStorage.setItem('ef_tests',JSON.stringify(S.tests)); }
+
+// ── CLOUD BAR ──────────────────────────────────────────
+let _cbt=null;
+function showCBar(type,msg) {
+  const bar=document.getElementById('cbar');
+  const ico=document.getElementById('cbico');
+  document.getElementById('cbmsg').textContent=msg;
+  bar.className=`cbar show ${type}`;
+  ico.className = type==='syncing'?'fas fa-circle-notch spin':type==='ok'?'fas fa-circle-check':'fas fa-circle-xmark';
+  clearTimeout(_cbt);
+  _cbt=setTimeout(()=>bar.classList.remove('show'), type==='syncing'?30000:3500);
+}
+
+// ── CLOUD STATUS BOX ───────────────────────────────────
+function updateCSB() {
+  prefillCloud();
+  const b=document.getElementById('cstatbox');
+  const c=document.getElementById('cconn');
+  const r=document.getElementById('rconn');
+  if (!b) return;
+  if (CLOUD.ready) {
+    b.className='cstat ok';
+    b.innerHTML=`<i class="fas fa-circle-check"></i> Connected · Bin: <span style="font-family:monospace">${CLOUD.binId.substring(0,10)}…</span>`;
+    if (c) c.innerHTML=`<div class="cstat ok" style="margin-bottom:16px"><i class="fas fa-cloud"></i> Cloud active — tests you upload appear on all student devices</div>`;
+    if (r) {
+      if (CLOUD.resBin) r.innerHTML=`<div class="cstat ok" style="margin-bottom:16px"><i class="fas fa-chart-line"></i> Results tracking enabled</div>`;
+      else r.innerHTML=`<div class="cstat none" style="margin-bottom:16px"><i class="fas fa-triangle-exclamation"></i> Results bin not set — student scores won't be saved to cloud</div>`;
+    }
+  } else {
+    b.className='cstat none';
+    b.innerHTML=`<i class="fas fa-circle-xmark"></i> Not connected — go to <strong>Cloud Sync</strong> tab`;
+    if (c) c.innerHTML=`<div class="cstat fail" style="margin-bottom:16px"><i class="fas fa-triangle-exclamation"></i> Cloud not set up — tests visible on this device only</div>`;
+  }
+}
+function prefillCloud() {
+  const b=document.getElementById('binid'); if(b) b.value=CLOUD.binId;
+  const r=document.getElementById('resbinid'); if(r) r.value=CLOUD.resBin;
+  const k=document.getElementById('apikey'); if(k) k.value=CLOUD.apiKey || CLOUD.DEFAULT_KEY;
+}
+
+// ── NAV ────────────────────────────────────────────────
+function nav(id) {
+  const cur=document.querySelector('.view.active');
+  if (cur) { cur.classList.add('exit'); setTimeout(()=>cur.classList.remove('active','exit'),260); }
+  setTimeout(()=>{
+    const nxt=document.getElementById('v'+id.replace(/-/g,''));
+    // map id to element id
+    const idmap={'start':'vs','admin-login':'val','admin-dash':'vad','test':'vt','result':'vr'};
+    const el=document.getElementById(idmap[id]||('v'+id));
+    if (el) {
+      el.classList.add('active');
+      if (id==='start') { fillSel(); updateCSB(); }
+    }
+  }, 150);
+}
+
+// ── TABS ───────────────────────────────────────────────
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  document.querySelectorAll('.pane').forEach(p=>p.classList.remove('on'));
+  document.getElementById('tab-'+name).classList.add('on');
+  document.getElementById('pane-'+name).classList.add('on');
+  if (name==='cloud') updateCSB();
+  if (name==='results') fetchResults(true);
+}
+
+// ── SELECTOR ──────────────────────────────────────────
+function fillSel() {
+  const sel=document.getElementById('tsel');
+  sel.innerHTML='';
+  if (!S.tests.length) {
+    sel.innerHTML='<option value="">No tests — Admin uploads from Cloud Sync tab</option>';
+    document.getElementById('ichips').style.display='none';
+    return;
+  }
+  S.tests.forEach((t,i)=>{ const o=document.createElement('option'); o.value=i; o.textContent=t.title; sel.appendChild(o); });
+  onTchg();
+}
+function onTchg() {
+  const sel=document.getElementById('tsel');
+  const t=S.tests[parseInt(sel.value)];
+  const chips=document.getElementById('ichips');
+  if (!t) { chips.style.display='none'; return; }
+  document.getElementById('cq').innerHTML=`<i class="fas fa-circle-question"></i> ${t.questions.length} Questions`;
+  document.getElementById('ct').innerHTML=`<i class="fas fa-clock"></i> ${Math.ceil(t.duration/60)} min`;
+  chips.style.display='flex';
+}
+
+// ── ADMIN AUTH ─────────────────────────────────────────
+function goAdmin() {
+  showModal({type:'info',icon:'fa-shield-halved',title:'Admin Area',
+    body:'This is a <strong>restricted area</strong> for administrators only. Continue?',
+    actions:[{label:'Cancel',cls:'bs',fn:closeModal},{label:'Continue',cls:'bp',fn:()=>{closeModal();navDirect('val');}}]
+  });
+}
+function doLogin() {
+  const u=document.getElementById('au').value.trim();
+  const p=document.getElementById('ap').value.trim();
+  const err=document.getElementById('aerr');
+  if (u===CREDS.u && p===CREDS.p) {
+    err.classList.add('hid');
+    toast('success','Welcome back, Admin! 👋');
+    navDirect('vad');
+    updateCSB(); renderAdmList(); fetchResults();
+    document.getElementById('au').value=''; document.getElementById('ap').value='';
+  } else {
+    document.getElementById('aemsg').textContent='Invalid username or password.';
+    err.classList.remove('hid');
+    err.style.animation='none'; err.offsetHeight; err.style.animation='';
+  }
+}
+function doLogout() { navDirect('vs'); fillSel(); toast('info','Logged out.'); }
+
+// direct nav using element ID
+function navDirect(eid) {
+  const cur=document.querySelector('.view.active');
+  if (cur) { cur.classList.add('exit'); setTimeout(()=>cur.classList.remove('active','exit'),260); }
+  setTimeout(()=>{ const el=document.getElementById(eid); if(el){ el.classList.add('active'); } }, 150);
+}
+
+// ── ADMIN LIST ─────────────────────────────────────────
+function renderAdmList() {
+  const el=document.getElementById('admlist');
+  document.getElementById('tc').textContent=S.tests.length;
+  if (!S.tests.length) {
+    el.innerHTML=`<div class="est card" style="padding:36px 20px">
+      <i class="fas fa-inbox"></i>
+      <h3>No Tests Yet</h3>
+      <p>Upload a JSON file from the Tests tab.<br>Tests will sync to all student devices via cloud.</p>
+    </div>`;
+    return;
+  }
+  el.innerHTML=S.tests.map((t,i)=>`
+    <div class="trow card ch stg" style="animation-delay:${i*.05}s">
+      <div class="tri">
+        <h4>${esc(t.title)}</h4>
+        <div class="trm">
+          <span><i class="fas fa-circle-question" style="color:var(--cyan)"></i> ${t.questions.length} Qs</span>
+          <span><i class="fas fa-clock" style="color:#a78bfa"></i> ${Math.ceil(t.duration/60)} min</span>
+          ${CLOUD.ready?'<span><i class="fas fa-cloud" style="color:var(--green)"></i> Synced</span>':'<span style="color:var(--amber)"><i class="fas fa-triangle-exclamation"></i> Local only</span>'}
+        </div>
+      </div>
+      <button class="btn br bxs" onclick="delTest(${i})"><i class="fas fa-trash"></i></button>
+    </div>`).join('');
+}
+
+// ── CRUD ───────────────────────────────────────────────
+function uploadJSON(e) {
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload = async ev => {
+    try {
+      const d=JSON.parse(ev.target.result);
+      const arr=Array.isArray(d)?d:[d];
+      let added=0;
+      arr.forEach(t=>{
+        if (!t.title||!Array.isArray(t.questions)) return;
+        if (!t.id) t.id='up_'+Date.now()+'_'+added;
+        if (!t.duration) t.duration=600;
+        if (!S.tests.find(x=>x.id===t.id)) { S.tests.push(t); added++; }
+      });
+      if (!added) { toast('warning','No valid new tests found.'); return; }
+      persistLocal(); renderAdmList(); fillSel();
+      toast('success',`${added} test(s) added! Pushing to cloud…`);
+      await pushCloud();
+    } catch { toast('error','Invalid JSON file. Check the format.'); }
+  };
+  r.readAsText(f); e.target.value='';
+}
+function delTest(i) {
+  showModal({type:'danger',icon:'fa-trash',title:'Delete Test',
+    body:`Delete <strong>"${esc(S.tests[i].title)}"</strong>? Will also remove from cloud.`,
+    actions:[
+      {label:'Cancel',cls:'bs',fn:closeModal},
+      {label:'Delete',cls:'br',fn:async()=>{ S.tests.splice(i,1); persistLocal(); renderAdmList(); closeModal(); toast('success','Deleted.'); await pushCloud(); }}
+    ]
+  });
+}
+function exportAll() {
+  if (!S.tests.length) { toast('warning','No tests to export.'); return; }
+  const b=new Blob([JSON.stringify(S.tests,null,2)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download='examforge_tests.json'; a.click(); URL.revokeObjectURL(a.href);
+  toast('success','Exported successfully!');
+}
+function clearAll() {
+  showModal({type:'danger',icon:'fa-triangle-exclamation',title:'Clear All Tests',
+    body:'Delete <strong>ALL tests</strong> from cloud and device permanently?',
+    actions:[
+      {label:'Cancel',cls:'bs',fn:closeModal},
+      {label:'Clear All',cls:'br',fn:async()=>{ S.tests=[]; persistLocal(); renderAdmList(); closeModal(); toast('info','All tests cleared.'); await pushCloud(); }}
+    ]
+  });
+}
+
+// ── BEGIN TEST ─────────────────────────────────────────
+function beginTest() {
+  const name=document.getElementById('uname').value.trim();
+  const idx=parseInt(document.getElementById('tsel').value);
+  if (!name) { toast('warning','Please enter your name.'); document.getElementById('uname').focus(); return; }
+  if (isNaN(idx)||!S.tests[idx]) { toast('warning','Please select a test.'); return; }
+  S.name=name; S.test=JSON.parse(JSON.stringify(S.tests[idx]));
+  S.qi=0; S.ans={}; S.fsW=0; S.reason='manual'; S.active=true;
+  navDirect('vt');
+  setTimeout(()=>{ buildTestUI(); startTimer(); reqFS(); listenFS(); }, 440);
+}
+
+// ── TEST UI ────────────────────────────────────────────
+function buildTestUI() {
+  document.getElementById('tbtl').textContent=S.test.title;
+  buildStrip(); renderQ(0,'right');
+}
+function buildStrip() {
+  const strip=document.getElementById('qstrip');
+  strip.innerHTML=S.test.questions.map((_,i)=>`
+    <div class="qd ${i===S.qi?'cur':S.ans[i]!==undefined?'ans':''}" onclick="jumpQ(${i})">${i+1}</div>`).join('');
+  strip.children[S.qi]?.scrollIntoView({behavior:'smooth',inline:'center',block:'nearest'});
+}
+function renderQ(idx,dir) {
+  const q=S.test.questions[idx], sel=S.ans[idx], total=S.test.questions.length;
+  document.getElementById('qhost').innerHTML=`
+    <div class="qwrap ${dir==='left'?'lft':''}">
+      <div class="qcard card">
+        <div class="qnt">Question ${idx+1} of ${total}</div>
+        <p class="qtxt">${esc(q.question)}</p>
+      </div>
+      <div class="opts">
+        ${q.options.map((o,i)=>`
+          <button class="opt ${sel===i?'sel':''}" onclick="pickA(${idx},${i})">
+            <div class="olt">${ALPHA[i]}</div>
+            <div>${esc(o)}</div>
+          </button>`).join('')}
+      </div>
+    </div>`;
+  document.getElementById('pfill').style.width=((idx+1)/total*100)+'%';
+  document.getElementById('plbl').textContent=`${idx+1} / ${total}`;
+  document.getElementById('bnprev').disabled=idx===0;
+  const last=idx===total-1;
+  document.getElementById('bnnext').classList.toggle('hid',last);
+  document.getElementById('bnsub').classList.toggle('hid',!last);
+}
+function pickA(qi,oi) {
+  S.ans[qi]=oi;
+  document.querySelectorAll('.opt').forEach((b,i)=>b.classList.toggle('sel',i===oi));
+  buildStrip();
+}
+function nextQ(){ if(S.qi<S.test.questions.length-1){S.qi++;buildStrip();renderQ(S.qi,'right');} }
+function prevQ(){ if(S.qi>0){S.qi--;buildStrip();renderQ(S.qi,'left');} }
+function jumpQ(i){ const d=i>S.qi?'right':'left'; S.qi=i; buildStrip(); renderQ(i,d); }
+function askSub() {
+  const tot=S.test.questions.length, ans=Object.keys(S.ans).length, sk=tot-ans;
+  showModal({type:sk?'warn':'success',icon:sk?'fa-triangle-exclamation':'fa-circle-check',
+    title:'Submit Test?',
+    body:`Answered <strong>${ans}/${tot}</strong>.${sk?` <strong>${sk}</strong> will be skipped.`:' All answered!'} Submit now?`,
+    actions:[{label:'Review',cls:'bs',fn:closeModal},{label:'Submit',cls:'bg_',fn:()=>{closeModal();doSubmit('manual');}}]
+  });
+}
+function doSubmit(reason) {
+  S.active=false; S.reason=reason;
+  clearInterval(S.timer); exitFS(); unlistenFS();
+  
+  const total = S.test.questions.length;
+  let score = 0;
+  S.test.questions.forEach((q,i)=>{ if(S.ans[i]===q.correct) score++; });
+  
+  pushResultToCloud({
+    name: S.name,
+    test: S.test.title,
+    score: score,
+    total: total,
+    reason: reason,
+    time: new Date().toISOString()
+  });
+
+  navDirect('vr'); setTimeout(buildResults,440);
+}
+
+// ── TIMER ──────────────────────────────────────────────
+function startTimer() {
+  S.tLeft=S.test.duration; S.tTotal=S.test.duration; tickT();
+  S.timer=setInterval(()=>{ S.tLeft--; tickT(); if(S.tLeft<=0){clearInterval(S.timer);doSubmit('time_up');} },1000);
+}
+function tickT() {
+  const m=String(Math.floor(S.tLeft/60)).padStart(2,'0');
+  const s=String(S.tLeft%60).padStart(2,'0');
+  document.getElementById('tlbl').textContent=`${m}:${s}`;
+  const pct=S.tLeft/S.tTotal, circ=144.51;
+  const prg=document.getElementById('tprg');
+  prg.style.strokeDashoffset=circ*(1-pct);
+  prg.classList.remove('warn','crit');
+  if(pct<.1) prg.classList.add('crit'); else if(pct<.25) prg.classList.add('warn');
+}
+
+// ── FULLSCREEN ─────────────────────────────────────────
+function reqFS(){ const e=document.documentElement; (e.requestFullscreen||e.webkitRequestFullscreen||e.mozRequestFullScreen||e.msRequestFullscreen)?.call(e); }
+function exitFS(){ (document.exitFullscreen||document.webkitExitFullscreen||document.mozCancelFullScreen||document.msExitFullscreen)?.call(document); }
+function reFS(){ reqFS(); document.getElementById('fswall').classList.add('hid'); }
+let _fsh=null;
+function listenFS() {
+  _fsh=()=>{
+    if(!S.active)return;
+    const inFS=!!(document.fullscreenElement||document.webkitFullscreenElement);
+    if(inFS)return;
+    S.fsW++;
+    if(S.fsW>=2){ document.getElementById('fswall').classList.add('hid'); doSubmit('fullscreen_violation'); }
+    else{ document.getElementById('fsn').textContent=S.fsW; document.getElementById('fswall').classList.remove('hid'); }
+  };
+  document.addEventListener('fullscreenchange',_fsh);
+  document.addEventListener('webkitfullscreenchange',_fsh);
+}
+function unlistenFS(){
+  if(_fsh){ document.removeEventListener('fullscreenchange',_fsh); document.removeEventListener('webkitfullscreenchange',_fsh); _fsh=null; }
+}
+
+// ── RESULTS ────────────────────────────────────────────
+function buildResults() {
+  const test=S.test, total=test.questions.length;
+  let c=0,w=0,sk=0;
+  test.questions.forEach((q,i)=>{ if(S.ans[i]===undefined)sk++; else if(S.ans[i]===q.correct)c++; else w++; });
+  const pct=Math.round(c/total*100);
+  document.getElementById('rttl').textContent=test.title;
+  setTimeout(()=>{ document.getElementById('rprg').style.strokeDashoffset=439.82*(1-pct/100); },500);
+  animCount('scnum',0,c,1400);
+  document.getElementById('scof').textContent=`/ ${total}`;
+  setTimeout(()=>{
+    const el=document.getElementById('scpct');
+    el.textContent=pct+'%';
+    el.className='sp '+(pct>=80?'ex':pct>=60?'gd':pct>=40?'av':'po');
+  },400);
+  const grades=[[90,'🏆 Outstanding!'],[80,'⭐ Excellent!'],[70,'✅ Great Job!'],[60,'👍 Good Effort!'],[40,'📚 Needs Improvement'],[-1,'❌ Better Luck Next Time']];
+  document.getElementById('scgrade').textContent=grades.find(([t])=>pct>=t)[1];
+  animCount('stc',0,c,900); animCount('stw',0,w,900); animCount('sts',0,sk,900);
+  buildBarChart(c,w,sk,total);
+  const reasons={manual:'Manual Submit',time_up:'⏰ Time Expired',fullscreen_violation:'⚑ FS Violation'};
+  document.getElementById('mn').textContent=S.name;
+  document.getElementById('mt').textContent=new Date().toLocaleString();
+  document.getElementById('mr').textContent=reasons[S.reason]||'Manual Submit';
+  const fb=document.getElementById('fbar');
+  if(S.reason==='fullscreen_violation'){ fb.classList.remove('hid'); document.getElementById('ftxt').textContent='⚠ Auto-submitted: repeated fullscreen exits. Result flagged for review.'; }
+  else fb.classList.add('hid');
+  buildBreakdown(test);
+}
+function buildBarChart(c,w,sk,total) {
+  const ch=document.getElementById('bch');
+  const bars=[{v:c,col:'var(--green)',lbl:'Correct'},{v:w,col:'var(--red)',lbl:'Wrong'},{v:sk,col:'var(--amber)',lbl:'Skipped'}];
+  ch.innerHTML=bars.map(b=>`
+    <div class="bcol">
+      <span class="bvl" style="color:${b.col}">${b.v}</span>
+      <div style="width:100%;background:rgba(255,255,255,.05);border-radius:5px 5px 0 0;flex:1;display:flex;align-items:flex-end;overflow:hidden">
+        <div class="bfill" style="background:${b.col};height:0%" data-h="${total?Math.round(b.v/total*100):0}"></div>
+      </div>
+      <span class="blb">${b.lbl}</span>
+    </div>`).join('');
+  setTimeout(()=>ch.querySelectorAll('[data-h]').forEach(el=>el.style.height=el.getAttribute('data-h')+'%'),120);
+}
+function buildBreakdown(test) {
+  const list=document.getElementById('bkdlist');
+  list.innerHTML=test.questions.map((q,i)=>{
+    const ua=S.ans[i], skip=ua===undefined, ok=!skip&&ua===q.correct;
+    const cc=skip?'skipped':ok?'correct':'wrong';
+    const bc=skip?'bac':ok?'bgc':'brc';
+    const bt=skip?'— Skipped':ok?'✓ Correct':'✗ Wrong';
+    const oh=q.options.map((opt,j)=>{
+      let cls='';
+      if(j===ua&&j===q.correct)cls='oks';
+      else if(j===ua)cls='bds';
+      else if(j===q.correct)cls='oka';
+      if(!cls)return '';
+      return `<div class="bkdo ${cls}"><div class="bkdd"></div><span>${ALPHA[j]}: ${esc(opt)}</span></div>`;
+    }).join('');
+    return `
+      <div class="bkd ${cc} stg" style="animation-delay:${i*.035}s">
+        <div class="bkdh"><span class="bkdqn">Q${i+1}</span><span class="badge ${bc}">${bt}</span></div>
+        <p class="bkdqt">${esc(q.question)}</p>
+        <div class="bkdos">${skip?`<div style="font-size:.76rem;color:var(--t3);padding:7px 11px">No answer selected</div>`:oh}</div>
+      </div>`;
+  }).join('');
+}
+
+// ── EXPORT ─────────────────────────────────────────────
+function doPDF(){ toast('info','Opening print dialog…'); setTimeout(()=>window.print(),300); }
+function doEmail(){
+  const t=S.test; let c=0; t.questions.forEach((q,i)=>{if(S.ans[i]===q.correct)c++;});
+  const pct=Math.round(c/t.questions.length*100);
+  const sub=encodeURIComponent(`[ExamForge] ${S.name} — ${t.title}: ${pct}%`);
+  const body=encodeURIComponent(`Exam Result\n\nTest: ${t.title}\nStudent: ${S.name}\nScore: ${c}/${t.questions.length} (${pct}%)\nDate: ${new Date().toLocaleString()}\n\nPowered by ExamForge · Developed by Azhar Khan`);
+  window.location.href=`mailto:?subject=${sub}&body=${body}`;
+}
+function doCopy(){
+  const t=S.test; let c=0; t.questions.forEach((q,i)=>{if(S.ans[i]===q.correct)c++;});
+  const pct=Math.round(c/t.questions.length*100);
+  const txt=`📊 ${S.name} scored ${c}/${t.questions.length} (${pct}%) on "${t.title}" — ExamForge by Azhar Khan`;
+  navigator.clipboard.writeText(txt).then(()=>toast('success','Copied!')).catch(()=>toast('error','Copy failed.'));
+}
+function doRetake(){
+  S.qi=0; S.ans={}; S.fsW=0; S.reason='manual'; S.active=true;
+  navDirect('vt'); setTimeout(()=>{ buildTestUI(); startTimer(); reqFS(); listenFS(); },440);
+}
+
+// ── MODAL ──────────────────────────────────────────────
+function showModal({type,icon,title,body,actions}) {
+  const h=document.getElementById('mhost');
+  const m={info:'info',warn:'warn',danger:'danger',success:'success'};
+  h.innerHTML=`
+    <div class="mov" id="mov" onclick="maybeClose(event)">
+      <div class="mbox">
+        <div class="mico ${m[type]||'info'}"><i class="fas ${icon}"></i></div>
+        <h2 class="mtitle">${title}</h2>
+        <div class="mbody">${body}</div>
+        <div class="macts">${actions.map((_,i)=>`<button class="btn ${actions[i].cls}" onclick="mAct(${i})">${actions[i].label}</button>`).join('')}</div>
+      </div>
+    </div>`;
+  h._acts=actions;
+}
+function maybeClose(e){if(e.target.id==='mov')closeModal();}
+function mAct(i){const h=document.getElementById('mhost');if(h._acts?.[i])h._acts[i].fn();}
+function closeModal(){const ov=document.getElementById('mov');if(ov){ov.style.transition='opacity .2s';ov.style.opacity='0';setTimeout(()=>{document.getElementById('mhost').innerHTML='';},200);}}
+
+// ── TOAST ──────────────────────────────────────────────
+function toast(type,msg){
+  const icons={success:'fa-circle-check',error:'fa-circle-xmark',warning:'fa-triangle-exclamation',info:'fa-circle-info'};
+  const pool=document.getElementById('tpool');
+  const el=document.createElement('div');
+  el.className=`tp ${type}`;
+  el.innerHTML=`<div class="tpico"><i class="fas ${icons[type]||'fa-circle-info'}"></i></div><span>${esc(msg)}</span>`;
+  pool.appendChild(el);
+  setTimeout(()=>{el.classList.add('out');setTimeout(()=>el.remove(),240);},3200);
+}
+
+// ── UTILS ──────────────────────────────────────────────
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function animCount(id,from,to,dur){
+  const el=document.getElementById(id); if(!el)return;
+  const t0=performance.now();
+  const step=now=>{const p=Math.min((now-t0)/dur,1),e=1-Math.pow(1-p,3);el.textContent=Math.round(from+(to-from)*e);if(p<1)requestAnimationFrame(step);};
+  requestAnimationFrame(step);
+}
+</script>
+</body>
+</html>
