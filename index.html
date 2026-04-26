@@ -711,10 +711,10 @@ const CLOUD = {
   DEFAULT_KEY: '$2a$10$ei2npp80wBxbjDuw2fA0xe6CAuZZpRdxfWvMYJpyNPR4o3C84if2C',
   DEFAULT_BIN: '69ed9f4faaba8821973adf8d',
   DEFAULT_RES_BIN: '69edb0b6856a68218972fdd5',
-  get binId()  { return localStorage.getItem('ef_bin')  || CLOUD.DEFAULT_BIN },
-  get apiKey() { return localStorage.getItem('ef_key')  || CLOUD.DEFAULT_KEY },
-  get resBin() { return localStorage.getItem('ef_res_bin') || CLOUD.DEFAULT_RES_BIN },
-  get ready()  { return !!this.binId }
+  get binId()  { return CLOUD.DEFAULT_BIN },
+  get apiKey() { return CLOUD.DEFAULT_KEY },
+  get resBin() { return CLOUD.DEFAULT_RES_BIN },
+  get ready()  { return true }
 };
 
 // ── STATE ──────────────────────────────────────────────
