@@ -47,7 +47,7 @@ Because ExamForge is entirely serverless, running it is incredibly simple:
 
 ## ☁️ Cloud Architecture & Deployment
 
-ExamForge uses hardcoded Bin IDs to ensure a seamless experience for both students and teachers across different devices. 
+ExamForge uses Bin IDs to ensure a seamless experience for both students and teachers across different devices. 
 
 - **Tests Bin**: Stores the JSON array of available tests.
 - **Results Bin**: Stores the submitted scores of all students.
